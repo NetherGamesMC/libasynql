@@ -147,7 +147,7 @@ class DataConnectorImpl implements DataConnector{
 		}, $onError);
 	}
 
-	private function executeImplLast(string $queryName, array $args, int $mode, callable $handler, ?callable $onError) : void{
+	public function executeImplLast(string $queryName, array $args, int $mode, callable $handler, ?callable $onError) : void{
 		$this->executeImpl($queryName, $args, $mode, static function($results) use($handler){
 			$handler($results[count($results) - 1]);
 		}, $onError);
