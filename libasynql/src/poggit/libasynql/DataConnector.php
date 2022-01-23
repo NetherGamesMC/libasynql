@@ -147,6 +147,13 @@ interface DataConnector{
 	public function executeImplRaw(array $queries, array $args, array $modes, callable $handler, ?callable $onError) : void;
 
 	/**
+	 * @param string $queryName
+	 * @param mixed[][] $args
+	 * @param int $mode
+	 */
+	public function executeImplLast(string $queryName, array $args, int $mode, callable $handler, ?callable $onError) : void;
+
+	/**
 	 * This function waits all pending queries to complete then returns. This is as if the queries were executed in blocking mode (not async).
 	 *
 	 * This method should only under very rare events like server start/stop. This should not be run trivially (e.g. every time player joins), because otherwise this is not async.
