@@ -96,7 +96,7 @@ class MysqliThread extends SqlSlaveThread{
 			$success = false;
 			$attempts = 0;
 			do{
-				$seconds = min(2 ** $attempts, PHP_INT_MAX);
+				$seconds = min(2 ** $attempts, 60);
 				$this->logger->warning("Database connection failed! Trying reconnecting in $seconds seconds.");
 				sleep($seconds);
 
