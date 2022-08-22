@@ -117,27 +117,6 @@ interface DataConnector{
 	public function executeInsert(string $queryName, array $args = [], ?callable $onInserted = null, ?callable $onError = null) : void;
 
 	/**
-	 * Executes an insert query that results in an insert ID.
-	 *
-	 * This function is the await-generator variant. Non await-generator users should not use this function.
-	 *
-	 * The generator returns a two-element array.
-	 * The first element is the insert ID.
-	 * The second element is the number of rows affected.
-	 *
-	 * Example usage:
-	 *
-	 * ```
-	 * [$insertId, $affectedRows] = yield from $connector->asyncChange(Queries::QUERY_NAME, $some, $arguments);
-	 * ```
-	 *
-	 * @param string  $queryName the {@link GenericPreparedStatement} query name
-	 * @param mixed[] $args      the variables as defined in the {@link GenericPreparedStatement}
-	 * @return Generator<mixed, Await::RESOLVE|Await::REJECT, mixed, array{int, int}>
-	 */
-	public function asyncInsert(string $queryName, array $args = []) : Generator;
-
-	/**
 	 * Executes a select query that returns an SQL result set. This does not strictly need to be SELECT queries -- reflection queries like MySQL's <code>SHOW TABLES</code> query are also allowed.
 	 *
 	 * If multiple delimited queries exist in the query, they will be executed in order, but only the last result will be returned.
@@ -173,26 +152,6 @@ interface DataConnector{
 	 * @param int $mode
 	 */
 	public function executeImplLast(string $queryName, array $args, int $mode, callable $handler, ?callable $onError) : void;
-	public function asyncSelect(string $queryName, array $args = []) : Generator;
-
-	/**
-	 * A variant of {@link #asyncSelect} with different return value.
-	 *
-	 * The generator returns a two-element array.
-	 * The first element is the array of rows.
-	 * The second element is an array of \link{SqlColumnInfo} objects.
-	 *
-	 * Example usage:
-	 *
-	 * ```
-	 * [$rows, $info] = yield from $connector->asyncSelectWithInfo(Queries::QUERY_NAME, $some, $arguments);
-	 * ```
-	 *
-	 * @param string  $queryName the {@link GenericPreparedStatement} query name
-	 * @param mixed[] $args      the variables as defined in the {@link GenericPreparedStatement}
-	 * @return Generator<mixed, Await::RESOLVE|Await::REJECT, mixed, array{array[], SqlColumnInfo[]}>
-	 */
-	public function asyncSelectWithInfo(string $queryName, array $args = []) : Generator;
 
 	/**
 	 * This function waits all pending queries to complete then returns. This is as if the queries were executed in blocking mode (not async).
