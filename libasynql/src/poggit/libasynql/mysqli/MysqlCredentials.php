@@ -93,6 +93,8 @@ class MysqlCredentials implements JsonSerializable{
 	 * @throws SqlError
 	 */
 	public function newMysqli() : mysqli{
+		mysqli_report(MYSQLI_REPORT_OFF);
+
 		$mysqli = @new mysqli($this->host, $this->username, $this->password, $this->schema, $this->port, $this->socket);
 		if($mysqli->connect_error){
 			throw new SqlError(SqlError::STAGE_CONNECT, $mysqli->connect_error);
