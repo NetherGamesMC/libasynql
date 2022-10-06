@@ -266,7 +266,6 @@ class DataConnectorImpl implements DataConnector{
 	public function waitAll() : void{
 		while(!empty($this->handlers)){
 			$this->checkResults();
-			usleep(1000);
 		}
 	}
 
