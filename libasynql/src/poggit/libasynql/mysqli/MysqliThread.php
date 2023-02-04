@@ -55,7 +55,6 @@ use function serialize;
 use function sleep;
 use function strtotime;
 use function unserialize;
-use const PHP_INT_MAX;
 
 class MysqliThread extends SqlSlaveThread{
 	/** @var string */
@@ -103,7 +102,7 @@ class MysqliThread extends SqlSlaveThread{
 				try{
 					$cred->reconnectMysqli($mysqli);
 					$success = true;
-				}catch(SqlError $e){
+				}catch(SqlError){
 					$attempts++;
 				}
 			}while(!$success);

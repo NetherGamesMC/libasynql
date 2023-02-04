@@ -44,8 +44,8 @@ interface SqlThread{
 	 * Adds a query to the queue.
 	 *
 	 * @param int      $queryId
-	 * @param int      $mode
-	 * @param string[] $query
+	 * @param int      $modes
+	 * @param string[] $queries
 	 * @param mixed[]  $params
 	 */
 	public function addQuery(int $queryId, array $modes, array $queries, array $params) : void;

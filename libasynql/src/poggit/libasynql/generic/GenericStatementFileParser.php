@@ -196,7 +196,7 @@ class GenericStatementFileParser{
 		}
 
 		if(count($this->buffer) === 0){
-			$this->error("Encountered delimiter line without any query content");;
+			$this->error("Encountered delimiter line without any query content");
 		}
 
 		$this->flushBuffer();

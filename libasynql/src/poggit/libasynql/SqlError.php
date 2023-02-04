@@ -135,7 +135,7 @@ class SqlError extends RuntimeException{
 			}
 			unset($call);
 			$traceProperty->setValue($this, $trace);
-		}while($exception = $this->getPrevious());
+		}while($this->getPrevious());
 		$traceProperty->setAccessible(false);
 	}
 }

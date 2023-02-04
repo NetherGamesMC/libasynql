@@ -37,7 +37,6 @@ use poggit\libasynql\SqlError;
 use poggit\libasynql\SqlResult;
 use poggit\libasynql\SqlThread;
 use SQLite3;
-use function array_values;
 use function assert;
 use function is_array;
 use const INF;

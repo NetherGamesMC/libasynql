@@ -35,7 +35,7 @@ interface GenericStatement{
 	/**
 	 * Returns the identifier name of this query
 	 *
-	 * @return string[]
+	 * @return string
 	 */
 	public function getName() : string;
 
