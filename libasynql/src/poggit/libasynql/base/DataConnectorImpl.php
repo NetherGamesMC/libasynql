@@ -46,7 +46,6 @@ use function count;
 use function is_resource;
 use function json_encode;
 use function str_replace;
-use function usleep;
 
 class DataConnectorImpl implements DataConnector{
 	/** @var Plugin */
@@ -197,7 +196,7 @@ class DataConnectorImpl implements DataConnector{
 						for($i = count($newTrace) - 1, $j = count($oldTrace) - 1; $i >= 0 && $j >= 0 && $newTrace[$i] === $oldTrace[$j]; --$i, --$j){
 							array_pop($newTrace);
 						}
-						/** @noinspection PhpUndefinedMethodInspection */
+
 						$prop->setValue($e, array_merge($newTrace, [
 							[
 								"function" => Terminal::$COLOR_YELLOW . "--- below is the original stack trace ---" . Terminal::$FORMAT_RESET,
@@ -218,7 +217,7 @@ class DataConnectorImpl implements DataConnector{
 						for($i = count($newTrace) - 1, $j = count($oldTrace) - 1; $i >= 0 && $j >= 0 && $newTrace[$i] === $oldTrace[$j]; --$i, --$j){
 							array_pop($newTrace);
 						}
-						/** @noinspection PhpUndefinedMethodInspection */
+
 						$errorProperty->setValue($e, array_merge($newTrace, [
 							[
 								"function" => Terminal::$COLOR_YELLOW . "--- below is the original stack trace ---" . Terminal::$FORMAT_RESET,
