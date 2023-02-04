@@ -33,7 +33,6 @@ use poggit\libasynql\SqlResult;
 use poggit\libasynql\SqlThread;
 use const PTHREADS_INHERIT_CONSTANTS;
 use const PTHREADS_INHERIT_INI;
-use function assert;
 
 abstract class SqlSlaveThread extends Thread implements SqlThread{
 	/** @var SleeperNotifier */
@@ -57,7 +56,6 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 		$this->bufferRecv->addAvailableThread();
 
 		if(!libasynql::isPackaged()){
-			/** @noinspection PhpUndefinedMethodInspection */
 			/** @noinspection NullPointerExceptionInspection */
 			/** @var ClassLoader $cl */
 			$cl = Server::getInstance()->getPluginManager()->getPlugin("DEVirion")->getVirionClassLoader();
