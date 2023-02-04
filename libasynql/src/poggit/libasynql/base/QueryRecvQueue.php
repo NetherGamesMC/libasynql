@@ -59,7 +59,7 @@ class QueryRecvQueue extends Threaded{
 	}
 
 	/**
-	 * @param SqlError|SqlResults[]|null $results
+	 * @param SqlError|SqlResult[]|null $results
 	 */
 	public function waitForResults(?int &$queryId, SqlError|array|null &$results) : bool{
 		return $this->synchronized(function() use (&$queryId, &$results) : bool{
