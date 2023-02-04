@@ -24,6 +24,7 @@ namespace poggit\libasynql\base;
 
 use poggit\libasynql\SqlError;
 use poggit\libasynql\SqlResult;
+use ThreadedArray;
 use Threaded;
 use function is_string;
 use function serialize;
@@ -31,26 +32,31 @@ use function unserialize;
 
 class QueryRecvQueue extends Threaded{
 	private int $availableThreads = 0;
+	private ThreadedArray $queries;
+
+	public function __construct(){
+		$this->queries = new ThreadedArray;
+	}
 
 	/**
 	 * @param SqlResult[] $results
 	 */
 	public function publishResult(int $queryId, array $results) : void{
-		$this->synchronized(function() use ($queryId, $results) : void{
-			$this[] = serialize([$queryId, $results]);
-			$this->notify();
+		$this->queries->synchronized(function() use ($queryId, $results) : void{
+			$this->queries[] = serialize([$queryId, $results]);
+			$this->queries->notify();
 		});
 	}
 
 	public function publishError(int $queryId, SqlError $error) : void{
-		$this->synchronized(function() use ($error, $queryId) : void{
-			$this[] = serialize([$queryId, $error]);
-			$this->notify();
+		$this->queries->synchronized(function() use ($error, $queryId) : void{
+			$this->queries[] = serialize([$queryId, $error]);
+			$this->queries->notify();
 		});
 	}
 
 	public function fetchResults(&$queryId, &$results) : bool{
-		$row = $this->shift();
+		$row = $this->queries->shift();
 		if(is_string($row)){
 			[$queryId, $results] = unserialize($row, ["allowed_classes" => true]);
 			return true;
@@ -62,22 +68,22 @@ class QueryRecvQueue extends Threaded{
 	 * @param SqlError|SqlResult[]|null $results
 	 */
 	public function waitForResults(?int &$queryId, SqlError|array|null &$results) : bool{
-		return $this->synchronized(function() use (&$queryId, &$results) : bool{
-			while($this->count() === 0 && $this->availableThreads > 0){
-				$this->wait();
+		return $this->queries->synchronized(function() use (&$queryId, &$results) : bool{
+			while($this->queries->count() === 0 && $this->availableThreads > 0){
+				$this->queries->wait();
 			}
 			return $this->fetchResults($queryId, $results);
 		});
 	}
 
 	public function addAvailableThread() : void{
-		$this->synchronized(fn() => ++$this->availableThreads);
+		$this->queries->synchronized(fn() => ++$this->availableThreads);
 	}
 
 	public function removeAvailableThread() : void{
-		$this->synchronized(function() : void{
+		$this->queries->synchronized(function() : void{
 			--$this->availableThreads;
-			$this->notify();
+			$this->queries->notify();
 		});
 	}
 }
