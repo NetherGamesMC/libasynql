@@ -25,11 +25,12 @@ namespace poggit\libasynql\base;
 use poggit\libasynql\SqlError;
 use poggit\libasynql\SqlResult;
 use ThreadedArray;
+use ThreadedBase;
 use function is_string;
 use function serialize;
 use function unserialize;
 
-class QueryRecvQueue{
+class QueryRecvQueue extends ThreadedBase{
 	private int $availableThreads = 0;
 	private ThreadedArray $queries;
 
