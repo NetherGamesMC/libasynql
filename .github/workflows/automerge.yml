@@ -13,7 +13,7 @@ on:
       - unlocked
 jobs:
   automerge:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - id: automerge
         name: automerge
