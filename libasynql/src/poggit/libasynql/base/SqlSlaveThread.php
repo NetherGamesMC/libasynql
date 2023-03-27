@@ -53,7 +53,6 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 		$this->slaveNumber = self::$nextSlaveNumber++;
 		$this->bufferSend = $bufferSend ?? new QuerySendQueue();
 		$this->bufferRecv = $bufferRecv ?? new QueryRecvQueue();
-		$this->bufferRecv->addAvailableThread();
 
 		if(!libasynql::isPackaged()){
 			/** @noinspection NullPointerExceptionInspection */
@@ -74,9 +73,7 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 		}
 
 		while(true){
-			$this->bufferRecv->removeAvailableThread();
 			$row = $this->bufferSend->fetchQuery();
-			$this->bufferRecv->addAvailableThread();
 			if(!is_string($row)){
 				break;
 			}
@@ -96,7 +93,6 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 			$this->notifier->wakeupSleeper();
 			$this->busy = false;
 		}
-		$this->bufferRecv->removeAvailableThread();
 		$this->close($resource);
 	}
 
@@ -122,8 +118,13 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 		$this->bufferSend->scheduleQuery($queryId, $modes, $queries, $params);
 	}
 
-	public function readResults(array &$callbacks) : void{
-		while($this->bufferRecv->waitForResults($queryId, $results)){
+	public function readResults(array &$callbacks, ?int $expectedResults) : void{
+		if($expectedResults === null){
+			$resultsList = $this->bufferRecv->fetchAllResults();
+		}else{
+			$resultsList = $this->bufferRecv->waitForResults($expectedResults);
+		}
+		foreach($resultsList as [$queryId, $results]){
 			if(!isset($callbacks[$queryId])){
 				throw new InvalidArgumentException("Missing handler for query #$queryId");
 			}

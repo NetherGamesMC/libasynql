@@ -31,7 +31,6 @@ use function serialize;
 use function unserialize;
 
 class QueryRecvQueue extends ThreadedBase{
-	private int $availableThreads = 0;
 	private ThreadedArray $queries;
 
 	public function __construct(){
@@ -56,8 +55,7 @@ class QueryRecvQueue extends ThreadedBase{
 	}
 
 	public function fetchResults(&$queryId, &$results) : bool{
-		$row = $this->queries->shift();
-		if(is_string($row)){
+		if(is_string($row = $this->queries->shift())){
 			[$queryId, $results] = unserialize($row, ["allowed_classes" => true]);
 			return true;
 		}
@@ -65,25 +63,32 @@ class QueryRecvQueue extends ThreadedBase{
 	}
 
 	/**
-	 * @param SqlError|SqlResult[]|null $results
+	 * @return list<array{int, SqlError|SqlResults[]|null}>
 	 */
-	public function waitForResults(?int &$queryId, SqlError|array|null &$results) : bool{
-		return $this->queries->synchronized(function() use (&$queryId, &$results) : bool{
-			while($this->queries->count() === 0 && $this->availableThreads > 0){
-				$this->queries->wait();
+	public function fetchAllResults(): array{
+		return $this->queries->synchronized(function(): array{
+			$ret = [];
+			while($this->fetchResults($queryId, $results)){
+				$ret[] = [$queryId, $results];
 			}
-			return $this->fetchResults($queryId, $results);
+			return $ret;
 		});
 	}
 
-	public function addAvailableThread() : void{
-		$this->queries->synchronized(fn() => ++$this->availableThreads);
-	}
-
-	public function removeAvailableThread() : void{
-		$this->queries->synchronized(function() : void{
-			--$this->availableThreads;
-			$this->queries->notify();
+	/**
+	 * @return list<array{int, SqlError|SqlResults[]|null}>
+	 */
+	public function waitForResults(int $expectedResults): array{
+		return $this->queries->synchronized(function() use ($expectedResults) : array{
+			$ret = [];
+			while(count($ret) < $expectedResults){
+				if(!$this->fetchResults($queryId, $results)){
+					$this->queries->wait();
+					continue;
+				}
+				$ret[] = [$queryId, $results];
+			}
+			return $ret;
 		});
 	}
 }
