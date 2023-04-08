@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.1.6](https://github.com/poggit/libasynql/compare/v4.1.5...v4.1.6)
+- Set `def` and `fx` as composer bin for running from vendor
+
+## [4.1.5](https://github.com/poggit/libasynql/compare/v4.1.4...v4.1.5)
+- Move `libasynql::detectPackaged()` call into `libasynql::create()`
+
+### Added
+- Virion 3.0 support
+
+## [4.1.4](https://github.com/poggit/libasynql/compare/v4.1.3...v4.1.4)
+
+### Added
+- Virion 3.0 support
+
 ## [4.1.3](https://github.com/poggit/libasynql/compare/v4.1.2...v4.1.3)
 
 ### Fixed
