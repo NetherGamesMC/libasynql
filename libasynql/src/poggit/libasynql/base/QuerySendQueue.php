@@ -22,16 +22,18 @@ declare(strict_types=1);
 
 namespace poggit\libasynql\base;
 
-use ThreadedArray;
-use ThreadedBase;
+use pmmp\thread\ThreadSafe;
+use pmmp\thread\ThreadSafeArray;
 use function serialize;
 
-class QuerySendQueue extends ThreadedBase {
-	private bool $invalidated = false;
-	private ThreadedArray $queries;
+class QuerySendQueue extends ThreadSafe{
+	/** @var bool */
+	private $invalidated = false;
+	/** @var ThreadSafeArray */
+	private $queries;
 
 	public function __construct(){
-		$this->queries = new ThreadedArray;
+		$this->queries = new ThreadSafeArray();
 	}
 
 	public function scheduleQuery(int $queryId, array $modes, array $queries, array $params) : void{
@@ -65,5 +67,9 @@ class QuerySendQueue extends ThreadedBase {
 	 */
 	public function isInvalidated(): bool {
 		return $this->invalidated;
+	}
+
+	public function count() : int{
+		return $this->queries->count();
 	}
 }
