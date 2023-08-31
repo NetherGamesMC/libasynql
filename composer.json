@@ -2,8 +2,10 @@
     "name": "sof3/libasynql",
     "type": "library",
     "require": {
-        "pocketmine/pocketmine-mp": "^5.0.0-BETA4",
 		"sof3/await-generator": "^2.0.0 || ^3.0.0"
+    },
+    "require-dev": {
+		"pocketmine/pocketmine-mp": "^5.0.0-BETA4"
     },
     "license": "Apache-2.0",
     "autoload": {
