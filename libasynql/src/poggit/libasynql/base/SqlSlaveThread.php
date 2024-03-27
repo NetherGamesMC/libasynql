@@ -31,11 +31,13 @@ use poggit\libasynql\libasynql;
 use poggit\libasynql\SqlError;
 use poggit\libasynql\SqlResult;
 use poggit\libasynql\SqlThread;
+use const libasynql\COMPOSER_AUTOLOADER_PATH;
 
 abstract class SqlSlaveThread extends Thread implements SqlThread{
 	private SleeperHandlerEntry $sleeperEntry;
 
 	private static $nextSlaveNumber = 0;
+	private $autoloaderPath = null;
 
 	protected $slaveNumber;
 	protected $bufferSend;
@@ -53,14 +55,22 @@ abstract class SqlSlaveThread extends Thread implements SqlThread{
 
 		if(!libasynql::isPackaged()){
 			/** @noinspection NullPointerExceptionInspection */
-			/** @var ClassLoader $cl */
-			$cl = Server::getInstance()->getPluginManager()->getPlugin("DEVirion")->getVirionClassLoader();
-			$this->setClassLoaders([Server::getInstance()->getLoader(), $cl]);
+			/** @var ?ClassLoader $cl */
+			$cl = Server::getInstance()->getPluginManager()->getPlugin("DEVirion")?->getVirionClassLoader();
+			if($cl === null){
+				$this->autoloaderPath = COMPOSER_AUTOLOADER_PATH;
+			}else{
+				$this->setClassLoaders([Server::getInstance()->getLoader(), $cl]);
+			}
 		}
 		$this->start(NativeThread::INHERIT_INI);
 	}
 
 	protected function onRun() : void{
+		if ($this->autoloaderPath !== null) {
+			require $this->autoloaderPath;
+		}
+
 		$error = $this->createConn($resource);
 		$this->connCreated = true;
 		$this->connError = $error;

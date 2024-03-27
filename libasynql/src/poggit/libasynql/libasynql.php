@@ -40,6 +40,8 @@ use function is_string;
 use function strtolower;
 use function usleep;
 
+require_once 'CoreConstants.php';
+
 /**
  * An utility class providing convenient access to the API
  */
@@ -144,7 +146,7 @@ final class libasynql{
 			throw new SqlError(SqlError::STAGE_CONNECT, $pool->getConnError());
 		}
 
-		$connector = new DataConnectorImpl($plugin, $pool, $placeHolder, $logQueries ?? !libasynql::isPackaged());
+		$connector = new DataConnectorImpl($plugin, $pool, $placeHolder, $logQueries ?? false);
 		foreach(is_string($sqlMap[$dialect]) ? [$sqlMap[$dialect]] : $sqlMap[$dialect] as $file){
 			$resource = $plugin->getResource($file);
 			if($resource===null){
