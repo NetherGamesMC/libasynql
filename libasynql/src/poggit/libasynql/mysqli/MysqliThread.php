@@ -26,9 +26,8 @@ use Closure;
 use InvalidArgumentException;
 use mysqli;
 use mysqli_result;
-use mysqli_stmt;
+use mysqli_sql_exception;
 use pocketmine\snooze\SleeperHandlerEntry;
-use pocketmine\snooze\SleeperNotifier;
 use pocketmine\thread\log\AttachableThreadSafeLogger;
 use poggit\libasynql\base\QueryRecvQueue;
 use poggit\libasynql\base\QuerySendQueue;
@@ -88,6 +87,20 @@ class MysqliThread extends SqlSlaveThread{
 		}
 	}
 
+	private static function queryWithErrors(Closure $handle, ?Closure $onError = null)
+	{
+		mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+		try {
+			$result = $handle();
+			return $result;
+		} catch (mysqli_sql_exception $err){
+			if($onError !== null) $onError($err);
+		} finally {
+			mysqli_report(MYSQLI_REPORT_OFF);
+		}
+	}
+
 	protected function executeQuery($mysqli, int $mode, string $query, array $params) : SqlResult{
 		assert($mysqli instanceof mysqli);
 		/** @var MysqlCredentials $cred */
@@ -97,7 +110,7 @@ class MysqliThread extends SqlSlaveThread{
 		mysqli_report(MYSQLI_REPORT_OFF);
 		try {
 			$ping = @$mysqli->ping();
-		} catch (\mysqli_sql_exception $err){}
+		} catch (mysqli_sql_exception $err){}
 		
 		if(!$ping){
 			$success = false;
@@ -118,10 +131,11 @@ class MysqliThread extends SqlSlaveThread{
 		}
 
 		if(count($params) === 0){
-			$result = $mysqli->query($query);
-			if($result === false){
-				throw new SqlError(SqlError::STAGE_EXECUTE, $mysqli->error, $query, []);
-			}
+			$result = self::queryWithErrors(
+				fn() => $mysqli->query($query),
+				fn() => throw new SqlError(SqlError::STAGE_EXECUTE, $mysqli->error, $query, [])
+			);
+
 			switch($mode){
 				case SqlThread::MODE_GENERIC:
 				case SqlThread::MODE_CHANGE:
@@ -138,15 +152,19 @@ class MysqliThread extends SqlSlaveThread{
 					return new SqlResult();
 
 				case SqlThread::MODE_SELECT:
+					if($result === false){
+						throw new SqlError(SqlError::STAGE_EXECUTE, $mysqli->error, $query, $params);
+					}
 					$ret = $this->toSelectResult($result);
 					$result->close();
 					return $ret;
 			}
 		}else{
-			$stmt = $mysqli->prepare($query);
-			if(!($stmt instanceof mysqli_stmt)){
-				throw new SqlError(SqlError::STAGE_PREPARE, $mysqli->error, $query, $params);
-			}
+			$stmt = self::queryWithErrors(
+				fn() => $mysqli->prepare($query),
+				fn() => throw new SqlError(SqlError::STAGE_PREPARE, $mysqli->error, $query, $params)
+			);
+
 			$types = implode(array_map(static function($param) use ($query, $params){
 				if(is_string($param)){
 					return "s";
@@ -160,8 +178,10 @@ class MysqliThread extends SqlSlaveThread{
 				throw new SqlError(SqlError::STAGE_PREPARE, "Cannot bind value of type " . gettype($param), $query, $params);
 			}, $params));
 			$stmt->bind_param($types, ...$params);
-			if(!$stmt->execute()){
-				throw new SqlError(SqlError::STAGE_EXECUTE, $stmt->error, $query, $params);
+			try{
+				$stmt->execute();
+			}catch(mysqli_sql_exception){
+				throw new SqlError(SqlError::STAGE_EXECUTE, $mysqli->error, $query, $params);
 			}
 			switch($mode){
 				case SqlThread::MODE_GENERIC:
@@ -181,6 +201,9 @@ class MysqliThread extends SqlSlaveThread{
 
 				case SqlThread::MODE_SELECT:
 					$set = $stmt->get_result();
+					if($set === false){
+						throw new SqlError(SqlError::STAGE_EXECUTE, $mysqli->error, $query, $params);
+					}
 					$ret = $this->toSelectResult($set);
 					$set->close();
 					return $ret;
