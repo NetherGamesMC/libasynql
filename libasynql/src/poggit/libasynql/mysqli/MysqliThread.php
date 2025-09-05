@@ -68,7 +68,7 @@ class MysqliThread extends SqlSlaveThread{
 		};
 	}
 
-	public function __construct(MysqlCredentials $credentials, SleeperHandlerEntry $entry, AttachableThreadSafeLogger $logger, QuerySendQueue $bufferSend = null, QueryRecvQueue $bufferRecv = null){
+	public function __construct(MysqlCredentials $credentials, SleeperHandlerEntry $entry, AttachableThreadSafeLogger $logger, ?QuerySendQueue $bufferSend = null, ?QueryRecvQueue $bufferRecv = null){
 		$this->credentials = serialize($credentials);
 		$this->logger = $logger;
 
